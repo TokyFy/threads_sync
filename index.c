@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: franaivo <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/14 11:14:15 by franaivo          #+#    #+#             */
-/*   Updated: 2024/08/14 11:16:38 by franaivo         ###   ########.fr       */
+/*   Created: 2024/08/20 08:29:29 by franaivo          #+#    #+#             */
+/*   Updated: 2024/08/20 08:29:37 by franaivo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/time.h>
-
-#define PHILO_NUMBER 50
 
 uint64_t	gettimeofday_ms(void)
 {
@@ -35,54 +33,63 @@ uint64_t	timestamp_in_ms(void)
 	return (gettimeofday_ms() - created_at);
 }
 
-typedef struct state {
-	pthread_t philo[PHILO_NUMBER];
-	pthread_mutex_t forks[PHILO_NUMBER];
-	uint64_t time_start;
-} t_state;
+typedef struct fork {
+    int id;
+    pthread_mutex_t mutex;
+} t_fork;
 
-pthread_mutex_t print_mutex;
+typedef struct philo {
+    int id;
+    pthread_t thread;
+    t_fork *left_fork;
+    t_fork *right_fork;
+} t_philo;
 
-void *worker(void *data)
+
+typedef struct simulation {
+    int philo_numbers;
+	t_philo **philos;
+    t_fork  **forks;
+} t_simulation;
+
+int init_philos(t_simulation *s)
 {
-	while(1)
-	{
-		pthread_mutex_lock(&print_mutex);
-		printf("%ld : %d\n" , timestamp_in_ms()  ,  *(int *)data);
-		pthread_mutex_unlock(&print_mutex);
-		usleep(10000);
-	}
-	return NULL;
+    int i = 0;
+    t_philo** philos = malloc(sizeof(t_philo*) * s->philo_numbers);
+    while(i < s->philo_numbers)
+    {
+        philos[i] = malloc(sizeof(t_philo));
+        (philos[i])->id = i;
+        i++;
+    }
+    s->philos = philos;
+    return 1;
 }
 
-void *int_copy(int n)
+int init_forks(t_simulation *s)
 {
-	int *x = malloc(sizeof(int));
-	*x = n;
-	return x;
+   int i = 0;
+    
+   t_fork **forks = malloc(sizeof(t_fork*) * s->philo_numbers);
+   int philo_nbr = s->philo_numbers;
+   while(i < s->philo_numbers)
+   {
+        forks[i] = malloc(sizeof(t_fork));
+        forks[i]->id = i;
+        s->philos[i]->left_fork = forks[i];
+        s->philos[((i - 1) % philo_nbr + philo_nbr) % philo_nbr]->right_fork = forks[i];
+        pthread_mutex_init(&(forks[i])->mutex , NULL);
+        i++;
+   }
+   s->forks = forks;
 }
 
 int main()
 {
-	int i = 0;
-	t_state table;
-	table.time_start = gettimeofday_ms();	
+    t_simulation dinning;
+    dinning.philo_numbers = 5;
 
-	pthread_mutex_init(&print_mutex , NULL);
-
-	while(i < PHILO_NUMBER)
-	{
-		pthread_mutex_init(&table.forks[i] , NULL);
-		i++;
-	} 
-
-	i = 0;
-	while(i < PHILO_NUMBER)
-	{
-		pthread_create(&table.philo[i] , NULL , worker , int_copy(i));
-		i++;
-	}
-	
-	while(1)
-	;;
+    init_philos(&dinning);
+    init_forks(&dinning);
+    return 0;
 }
