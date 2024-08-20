@@ -77,7 +77,7 @@ int init_forks(t_simulation *s)
         forks[i] = malloc(sizeof(t_fork));
         forks[i]->id = i;
         s->philos[i]->left_fork = forks[i];
-        s->philos[((i - 1) % philo_nbr + philo_nbr) % philo_nbr]->right_fork = forks[i];
+        s->philos[(i + philo_nbr - 1) % philo_nbr]->right_fork = forks[i];
         pthread_mutex_init(&(forks[i])->mutex , NULL);
         i++;
    }
