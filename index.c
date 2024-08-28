@@ -177,9 +177,13 @@ void eating(void *arg)
 }
 
 void *worker(void *arg)
+
 {
     t_philo *p = arg;
     t_simulation *dinning = p->dinning;
+
+    if(p->id % 2 == 0 && p->id != (t_simulation*)(p->dinning)->philo_numbers - 1)
+      usleep(10 * 1000);
 
     while(1)
     {
