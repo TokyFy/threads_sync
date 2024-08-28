@@ -29,16 +29,35 @@ typedef struct philo {
     t_fork *left_fork;
     t_fork *right_fork;
     uint64_t eat_time;
-    uint64_t think_time;
-    uint64_t sleeping_time;
+    void  *dinning;
 } t_philo;
-
 
 typedef struct simulation {
     int philo_numbers;
     t_philo **philos;
     t_fork  **forks;
+    uint64_t t_t_eat;
+    uint64_t t_t_sleep;
+    uint64_t t_t_die;
+    int meals_limit;
 } t_simulation;
+
+int ft_atoi(char *s) {
+    int acum = 0;
+    int factor = 1;
+
+    if(*s == '-' || *s == '+') {
+        if(*s == '-')
+          factor = -1;
+        s++;
+    }
+    while((*s >= '0') && (*s <= '9')) {
+      acum = acum * 10;
+      acum = acum + (*s - 48);
+      s++;
+    }
+    return (factor * acum);
+}
 
 uint64_t	gettimeofday_ms(void)
 {
@@ -74,6 +93,7 @@ int init_philos(t_simulation *s)
     {
         philos[i] = malloc(sizeof(t_philo));
         (philos[i])->id = i;
+        (philos[i])->dinning = s;
         i++;
     }
     s->philos = philos;
@@ -113,20 +133,18 @@ void logging(t_philo *philo , t_mode mode)
     uint64_t time = timestamp_in_ms();
     if(mode == THINKING)
     {
-        philo->think_time = time;
-        printf("%ld %d is thinking\n" , philo->think_time , philo->id);
+        printf("%ld %d is thinking\n" , time , philo->id);
     }
     else if (mode == EATING) {
         philo->eat_time = time;
-        printf("%ld %d is eating\n" , philo->eat_time , philo->id);
+        printf("%ld %d is eating\n" , time , philo->id);
     }
     else if (mode == PICKING_FORK) {
         printf("%ld %d has taken a fork\n" , time , philo->id);
     }
     else if(mode == SLEEPING)
     {
-        philo->sleeping_time = time;
-        printf("%ld %d is sleeping\n" , philo->sleeping_time , philo->id);
+        printf("%ld %d is sleeping\n" , time , philo->id);
     }
     pthread_mutex_unlock(&m);
 }
@@ -135,6 +153,7 @@ void logging(t_philo *philo , t_mode mode)
 void eating(void *arg)
 {
     t_philo *p = arg;
+    t_simulation *dinning = p->dinning;
 
     if (p->left_fork->id < p->right_fork->id)
     {
@@ -152,7 +171,7 @@ void eating(void *arg)
     }
 
     logging(p, EATING);
-    usleep(200 * 1000);
+    usleep(dinning->t_t_eat * 1000);
     pthread_mutex_unlock(&p->right_fork->mutex);
     pthread_mutex_unlock(&p->left_fork->mutex);
 }
@@ -160,21 +179,33 @@ void eating(void *arg)
 void *worker(void *arg)
 {
     t_philo *p = arg;
+    t_simulation *dinning = p->dinning;
 
     while(1)
     {
         logging(p, THINKING);
         eating(p);
         logging(p, SLEEPING);
-        usleep(200 * 1000);
+        usleep(dinning->t_t_sleep * 1000);
     }
     return NULL;
 }
 
 int main(int argc , char **argv)
 {
+    if(!(argc == 5 || argc == 6))
+    {
+        printf("Usage : ./philo nbr_of_philo t_t_die t_t_eat t_t_sleep [nbr_of_t_each_philo_must_eat]\n");
+        return EXIT_FAILURE;
+    }
+
     t_simulation dinning;
-    dinning.philo_numbers = 5;
+    dinning.philo_numbers = ft_atoi(argv[1]);
+    dinning.t_t_die = ft_atoi(argv[2]);
+    dinning.t_t_eat = ft_atoi(argv[3]);
+    dinning.t_t_sleep = ft_atoi(argv[4]);
+    dinning.meals_limit = 0;
+
     init_philos(&dinning);
     init_forks(&dinning);
 
@@ -185,6 +216,17 @@ int main(int argc , char **argv)
         i++;
     }
     while(1)
-       ;;
+    {
+      i = 0;
+      while (i < dinning.philo_numbers) {
+        if((timestamp_in_ms() - dinning.philos[i]->eat_time) > dinning.t_t_die)
+        {
+            printf("%ld %d died\n" , timestamp_in_ms() , i);
+            exit(EXIT_SUCCESS);
+        }
+        i++;
+      }
+      usleep(100);
+    }
     return 0;
 }
