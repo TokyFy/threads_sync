@@ -19,6 +19,8 @@
 
 typedef struct fork {
     int id;
+    int taken;
+    pthread_mutex_t m_taken;
     pthread_mutex_t mutex;
 } t_fork;
 
@@ -89,6 +91,7 @@ int init_philos(t_simulation *s) {
     while (i < s->philo_numbers) {
         philos[i] = malloc(sizeof(t_philo));
         (philos[i])->id = i;
+        (philos[i])->eat_time = 0;
         (philos[i])->dinning = s;
         i++;
     }
@@ -103,10 +106,12 @@ int init_forks(t_simulation *s) {
     int philo_nbr = s->philo_numbers;
     while (i < s->philo_numbers) {
         forks[i] = malloc(sizeof(t_fork));
-        forks[i]->id = i;
+        forks[i]->id = i + 1;
+        forks[i]->taken = 0;
         s->philos[i]->right_fork = forks[i];
         s->philos[(i + philo_nbr - 1) % philo_nbr]->left_fork = forks[i];
         pthread_mutex_init(&(forks[i])->mutex, NULL);
+        pthread_mutex_init(&(forks[i])->m_taken, NULL);
         i++;
     }
     s->forks = forks;
@@ -138,9 +143,19 @@ void logging(t_philo *philo, t_mode mode) {
 }
 
 
-void eating(void *arg) {
+void eating(void *arg)
+{
     t_philo *p = arg;
     t_simulation *dinning = p->dinning;
+    int taken = 0;
+
+    pthread_mutex_lock(&p->left_fork->m_taken);
+    pthread_mutex_lock(&p->right_fork->m_taken);
+    taken = p->left_fork->taken || p->right_fork->taken;
+    pthread_mutex_unlock(&p->left_fork->m_taken);
+    pthread_mutex_unlock(&p->right_fork->m_taken);
+    if(taken)
+        return;
 
     if (p->left_fork->id < p->right_fork->id) {
         pthread_mutex_lock(&p->left_fork->mutex);
@@ -154,15 +169,19 @@ void eating(void *arg) {
         logging(p, PICKING_FORK);
     }
 
+
     logging(p, EATING);
     usleep(dinning->t_t_eat * 1000);
     pthread_mutex_unlock(&p->right_fork->mutex);
     pthread_mutex_unlock(&p->left_fork->mutex);
 }
 
-void *worker(void *arg) {
+void *worker(void *arg)
+{
     t_philo *p = arg;
     t_simulation *dinning = p->dinning;
+
+    usleep((dinning->philo_numbers - (dinning->philo_numbers - p->id)) * 10000);
 
     if (p->id % 2 == 0)
         usleep(10 * 1000);

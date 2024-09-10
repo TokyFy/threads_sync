@@ -1,2 +1,2 @@
 all : index.c
-	cc index.c -o philo
+	cc -g index.c -o philo
