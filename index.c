@@ -167,9 +167,20 @@ void	logging(t_philo *philo, t_mode mode)
 	t_simulation			*dinning;
 	uint64_t				time;
 
+
 	pthread_mutex_lock(&m);
 	dinning = philo->dinning;
 	time = gettimeofday_ms();
+
+	pthread_mutex_lock(&dinning->stoped_lock);
+	if(dinning->stoped && mode != DYING)
+	{
+	   pthread_mutex_unlock(&dinning->stoped_lock);
+	   pthread_mutex_unlock(&m);
+	   return;
+	}
+	pthread_mutex_unlock(&dinning->stoped_lock);
+
 	if (mode == THINKING)
 	{
 		printf("%ld %d is thinking\n", time - dinning->start_time, philo->id);
@@ -242,6 +253,7 @@ void	*worker(void *arg)
 
 	p = arg;
 	dinning = p->dinning;
+
 	pthread_mutex_lock(&dinning->start_time_lock);
 	if (dinning->start_time == 0)
 		dinning->start_time = gettimeofday_ms();
@@ -258,8 +270,8 @@ void	*worker(void *arg)
 		    pthread_mutex_unlock(&dinning->stoped_lock);
 			return (NULL);
 		}
-		logging(p, THINKING);
 		pthread_mutex_unlock(&dinning->stoped_lock);
+		logging(p, THINKING);
 		eating(p);
 		logging(p, SLEEPING);
 		usleep(dinning->t_t_sleep * 1000);
@@ -330,5 +342,10 @@ int	main(int argc, char **argv)
 			break ;
 	}
 
+	i = 0;
+	while (i < dinning.philo_numbers) {
+	   pthread_join(dinning.philos[i]->thread, NULL);
+		i++;
+	}
 	return (0);
 }
