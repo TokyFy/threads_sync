@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <time.h>
 #include <unistd.h>
 
 typedef struct fork
@@ -107,6 +106,22 @@ uint64_t	timestamp_in_ms(void)
 	return (time);
 }
 
+uint64_t safe_get_int(pthread_mutex_t *lock , void *n)
+{
+	uint64_t value;
+	pthread_mutex_lock(lock);
+	value = *(uint64_t *)n;
+	pthread_mutex_unlock(lock);
+	return value;
+}
+
+void safe_set_int(pthread_mutex_t *lock , void *n , const uint64_t v)
+{
+	pthread_mutex_lock(lock);
+	*(uint64_t *)n = v;
+	pthread_mutex_unlock(lock);
+}
+
 int	init_philos(t_simulation *s)
 {
 	int		i;
@@ -172,14 +187,12 @@ void	logging(t_philo *philo, t_mode mode)
 	dinning = philo->dinning;
 	time = gettimeofday_ms();
 
-	pthread_mutex_lock(&dinning->stoped_lock);
-	if(dinning->stoped && mode != DYING)
+
+	if(safe_get_int(&dinning->stoped_lock , &dinning->stoped) && mode != DYING)
 	{
-	   pthread_mutex_unlock(&dinning->stoped_lock);
 	   pthread_mutex_unlock(&m);
 	   return;
 	}
-	pthread_mutex_unlock(&dinning->stoped_lock);
 
 	if (mode == THINKING)
 	{
@@ -187,9 +200,7 @@ void	logging(t_philo *philo, t_mode mode)
 	}
 	else if (mode == EATING)
 	{
-		pthread_mutex_lock(&philo->eat_time_lock);
-		philo->eat_time = time;
-		pthread_mutex_unlock(&philo->eat_time_lock);
+		safe_set_int(&philo->eat_time_lock , &philo->eat_time , time);
 		printf("%ld %d is eating\n", time - dinning->start_time, philo->id);
 	}
 	else if (mode == PICKING_FORK)
@@ -264,13 +275,8 @@ void	*worker(void *arg)
 		usleep(20 * 1000);
 	while (1)
 	{
-		pthread_mutex_lock(&dinning->stoped_lock);
-		if (dinning->stoped)
-		{
-		    pthread_mutex_unlock(&dinning->stoped_lock);
+		if (safe_get_int(&dinning->stoped_lock , &dinning->stoped))
 			return (NULL);
-		}
-		pthread_mutex_unlock(&dinning->stoped_lock);
 		logging(p, THINKING);
 		eating(p);
 		logging(p, SLEEPING);
@@ -284,6 +290,7 @@ int	main(int argc, char **argv)
 	t_simulation	dinning;
 	int				i;
 	int				hungry_time;
+	int				nbr_full_philo;
 
 	if (!(argc == 5 || argc == 6))
 	{
@@ -318,19 +325,12 @@ int	main(int argc, char **argv)
 		i = 0;
 		while (i < dinning.philo_numbers)
 		{
-			pthread_mutex_lock(&dinning.philos[i]->eat_time_lock);
-			hungry_time = (gettimeofday_ms() - dinning.philos[i]->eat_time);
-			pthread_mutex_unlock(&dinning.philos[i]->eat_time_lock);
-
-			pthread_mutex_lock(&dinning.philo_fullup_lock);
-			int nbr_full_philo = dinning.philo_fullup_numbers;
-			pthread_mutex_unlock(&dinning.philo_fullup_lock);
+			hungry_time = (gettimeofday_ms() - safe_get_int(&dinning.philos[i]->eat_time_lock , &dinning.philos[i]->eat_time));
+			nbr_full_philo = safe_get_int(&dinning.philo_fullup_lock , &dinning.philo_fullup_numbers);
 
 			if (hungry_time > dinning.t_t_die || nbr_full_philo > dinning.philo_numbers)
 			{
-				pthread_mutex_lock(&dinning.stoped_lock);
-				dinning.stoped = 1;
-				pthread_mutex_unlock(&dinning.stoped_lock);
+				safe_set_int(&dinning.stoped_lock , &dinning.stoped , 1);
 				if(hungry_time > dinning.t_t_die)
 				    logging(dinning.philos[i], DYING);
 				break ;
