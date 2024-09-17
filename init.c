@@ -12,7 +12,7 @@ int	init_philos(t_simulation *s)
         philos[i] = malloc(sizeof(t_philo));
         (philos[i])->id = i + 1;
         (philos[i])->meals_numbers = 0;
-        (philos[i])->eat_time = 0;
+        (philos[i])->eat_tieat_timeeat_timeme = 0;
         (philos[i])->dinning = s;
         pthread_mutex_init(&(philos[i]->eat_time_lock), NULL);
         pthread_mutex_init(&(philos[i]->meals_numbers_lock), NULL);
