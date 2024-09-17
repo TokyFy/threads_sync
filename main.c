@@ -125,7 +125,7 @@ void	init_philos(t_philo *philos, t_simulation *program, pthread_mutex_t *forks,
 		philos[i].meals_eaten = 0;
 		init_input(&philos[i], argv);
 		philos[i].start_time = gettimeofday_ms();
-		philos[i].last_meal = philos[i].start_time;
+		philos[i].last_meal = gettimeofday_ms();
 		philos[i].l_print = &program->l_print;
 		philos[i].l_dead = &program->l_dead;
 		philos[i].l_meal = &program->l_meal;
@@ -169,14 +169,14 @@ int	is_dead(t_philo *philo)
 	return (0);
 }
 
-void	logging(char *str, t_philo *philo, int id)
+void	logging(char *str, t_philo *philo)
 {
 	uint64_t	time;
 
 	pthread_mutex_lock(philo->l_print);
 	time = gettimeofday_ms() - philo->start_time;
 	if (!is_dead(philo))
-		printf("%zu %d %s\n", time, id, str);
+		printf("%zu %d %s\n", time, philo->id, str);
 	pthread_mutex_unlock(philo->l_print);
 }
 
@@ -199,7 +199,7 @@ int	have_someone_die(t_philo *philos)
 	{
 		if (should_die(&philos[i], philos[i].t_t_die))
 		{
-			logging("died", &philos[i], philos[i].id);
+			logging("died", &philos[i]);
 			pthread_mutex_lock(philos[0].l_dead);
 			*philos->dead = 1;
 			pthread_mutex_unlock(philos[0].l_dead);
@@ -245,8 +245,10 @@ void	*monitor(void *pointer)
 
 	philos = (t_philo *)pointer;
 	while (1)
+	{
 		if (have_someone_die(philos) == 1 || is_all_fullup(philos) == 1)
 			break ;
+	}
 	return (pointer);
 }
 
@@ -267,29 +269,39 @@ int	check_arg_content(char *arg)
 
 void	p_think(t_philo *philo)
 {
-	logging("is thinking", philo, philo->id);
+	logging("is thinking", philo);
 }
 
 void	p_sleep(t_philo *philo)
 {
-	logging("is sleeping", philo, philo->id);
+	logging("is sleeping", philo);
 	ft_usleep(philo->t_t_sleep);
 }
 
 void	p_eat(t_philo *philo)
 {
-	pthread_mutex_lock(philo->right_fork);
-	logging("has taken a fork", philo, philo->id);
-	if (philo->num_of_philos == 1)
+	if(philo->id % 2 != 0)
 	{
-		ft_usleep(philo->t_t_die);
-		pthread_mutex_unlock(philo->right_fork);
-		return ;
+		pthread_mutex_lock(philo->right_fork);
+		logging("has taken a fork", philo);
+		if (philo->num_of_philos == 1)
+		{
+			ft_usleep(philo->t_t_die);
+			pthread_mutex_unlock(philo->right_fork);
+			return ;
+		}
+		pthread_mutex_lock(philo->left_fork);
+		logging("has taken a fork", philo);
 	}
-	pthread_mutex_lock(philo->left_fork);
-	logging("has taken a fork", philo, philo->id);
+	else
+	{
+		pthread_mutex_lock(philo->left_fork);
+		logging("has taken a fork", philo);
+		pthread_mutex_lock(philo->right_fork);
+		logging("has taken a fork", philo);
+	}
 	philo->eating = 1;
-	logging("is eating", philo, philo->id);
+	logging("is eating", philo);
 	pthread_mutex_lock(philo->l_meal);
 	philo->last_meal = gettimeofday_ms();
 	philo->meals_eaten++;
@@ -306,7 +318,7 @@ void	*philo_routine(void *pointer)
 
 	philo = (t_philo *)pointer;
 	if (philo->id % 2 != 0)
-		ft_usleep(10);
+		ft_usleep(1);
 	while (!is_dead(philo))
 	{
 		p_eat(philo);
