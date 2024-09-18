@@ -25,6 +25,7 @@ typedef struct philo
     void			*dinning;
     uint64_t		eat_time;
     int				meals_numbers;
+    uint64_t		start_time;
     pthread_mutex_t	eat_time_lock;
     pthread_mutex_t	meals_numbers_lock;
 }					t_philo;
@@ -39,7 +40,6 @@ typedef struct simulation
     uint64_t		t_t_sleep;
     uint64_t		t_t_die;
     int				meals_limit;
-    uint64_t		start_time;
     int				stoped;
     pthread_mutex_t	start_time_lock;
     pthread_mutex_t	stoped_lock;
@@ -60,6 +60,7 @@ uint64_t	gettimeofday_ms(void);
 uint64_t	timestamp_in_ms(void);
 uint64_t safe_get_int(pthread_mutex_t *lock , void *n);
 void safe_set_int(pthread_mutex_t *lock , void *n , const uint64_t v);
+int	ft_usleep(uint64_t ms);
 
 int	init_philos(t_simulation *s);
 int	init_forks(t_simulation *s);

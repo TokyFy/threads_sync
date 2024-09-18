@@ -14,6 +14,8 @@ int	init_philos(t_simulation *s)
         (philos[i])->meals_numbers = 0;
         (philos[i])->eat_time = 0;
         (philos[i])->dinning = s;
+        (philos[i])->start_time = gettimeofday_ms();
+        (philos[i])->eat_time = gettimeofday_ms();
         pthread_mutex_init(&(philos[i]->eat_time_lock), NULL);
         pthread_mutex_init(&(philos[i]->meals_numbers_lock), NULL);
         i++;
@@ -35,8 +37,11 @@ int	init_forks(t_simulation *s)
     {
         forks[i] = malloc(sizeof(t_fork));
         forks[i]->id = i + 1;
-        s->philos[i]->right_fork = forks[i];
-        s->philos[(i + philo_nbr - 1) % philo_nbr]->left_fork = forks[i];
+        s->philos[i]->left_fork = forks[i];
+        if(i == 0)
+            s->philos[philo_nbr - 1]->right_fork = forks[i];
+        else
+            s->philos[i - 1]->right_fork = forks[i];
         pthread_mutex_init(&(forks[i])->mutex, NULL);
         pthread_mutex_init(&(forks[i])->m_taken, NULL);
         i++;

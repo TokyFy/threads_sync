@@ -66,3 +66,12 @@ void safe_set_int(pthread_mutex_t *lock , void *n , const uint64_t v)
     *(uint64_t *)n = v;
     pthread_mutex_unlock(lock);
 }
+
+int	ft_usleep(uint64_t ms)
+{
+	uint64_t	start;
+	start = gettimeofday_ms();
+	while ((gettimeofday_ms() - start) < ms)
+		usleep(50);
+	return (0);
+}
