@@ -72,6 +72,6 @@ int	ft_usleep(uint64_t ms)
 	uint64_t	start;
 	start = gettimeofday_ms();
 	while ((gettimeofday_ms() - start) < ms)
-		usleep(50);
+		usleep(500);
 	return (0);
 }

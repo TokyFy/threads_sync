@@ -162,6 +162,8 @@ int	main(int argc, char **argv)
 	i = 0;
 	while (i < dinning.philo_numbers)
 	{
+	    dinning.philos[i]->start_time = gettimeofday_ms();
+	    dinning.philos[i]->eat_time = gettimeofday_ms();
 		pthread_create(&dinning.philos[i]->thread, NULL, worker,
 			dinning.philos[i]);
 		i++;
