@@ -45,12 +45,10 @@ void	logging(t_philo *philo, t_mode mode)
 	pthread_mutex_unlock(&m);
 }
 
-void	eating(void *arg)
+void	take_forks(t_philo *p)
 {
-	t_philo			*p;
 	t_simulation	*dinning;
 
-	p = arg;
 	dinning = p->dinning;
 	if (p->id % 2 == 0)
 	{
@@ -72,6 +70,16 @@ void	eating(void *arg)
 		pthread_mutex_lock(&p->left_fork->mutex);
 		logging(p, PICKING_FORK);
 	}
+}
+
+void	eating(void *arg)
+{
+	t_philo			*p;
+	t_simulation	*dinning;
+
+	p = arg;
+	dinning = p->dinning;
+	take_forks(p);
 	logging(p, EATING);
 	pthread_mutex_lock(&p->meals_numbers_lock);
 	p->meals_numbers++;
@@ -144,11 +152,11 @@ void	monitor(t_simulation *dinning)
 						&dinning->philos[i]->eat_time));
 			nbr_full_philo = safe_get_int(&dinning->philo_fullup_lock,
 					&dinning->philo_fullup_numbers);
-			if (hungry_time > dinning->t_t_die
+			if (hungry_time >= dinning->t_t_die
 				|| nbr_full_philo > dinning->philo_numbers)
 			{
 				safe_set_int(&dinning->stoped_lock, &dinning->stoped, 1);
-				if (hungry_time > dinning->t_t_die)
+				if (hungry_time >= dinning->t_t_die)
 					logging(dinning->philos[i], DYING);
 				break ;
 			}
