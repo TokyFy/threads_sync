@@ -16,23 +16,20 @@
 
 void	logging(t_philo *philo, t_mode mode)
 {
-	static pthread_mutex_t	m = PTHREAD_MUTEX_INITIALIZER;
 	t_simulation			*dinning;
 	uint64_t				time;
-
-	pthread_mutex_lock(&m);
 	dinning = philo->dinning;
+	pthread_mutex_lock(&dinning->print_lock);
 	time = gettimeofday_ms();
 	if (safe_get_int(&dinning->stoped_lock, &dinning->stoped) && mode != DYING)
 	{
-		pthread_mutex_unlock(&m);
+	    pthread_mutex_unlock(&dinning->print_lock);
 		return ;
 	}
 	if (mode == THINKING)
 		printf("%ld %d is thinking\n", time - philo->start_time, philo->id);
 	else if (mode == EATING)
 	{
-		safe_set_int(&philo->eat_time_lock, &philo->eat_time, time);
 		printf("%ld %d is eating\n", time - philo->start_time, philo->id);
 	}
 	else if (mode == PICKING_FORK)
@@ -42,7 +39,7 @@ void	logging(t_philo *philo, t_mode mode)
 		printf("%ld %d is sleeping\n", time - philo->start_time, philo->id);
 	else if (mode == DYING)
 		printf("%ld %d died\n", time - philo->start_time, philo->id);
-	pthread_mutex_unlock(&m);
+	pthread_mutex_unlock(&dinning->print_lock);
 }
 
 void	take_forks(t_philo *p)
@@ -81,6 +78,7 @@ void	eating(void *arg)
 	dinning = p->dinning;
 	take_forks(p);
 	logging(p, EATING);
+	safe_set_int(&p->eat_time_lock, &p->eat_time, gettimeofday_ms());
 	pthread_mutex_lock(&p->meals_numbers_lock);
 	p->meals_numbers++;
 	if (p->meals_numbers >= dinning->meals_limit)
@@ -128,6 +126,7 @@ void	init_simulation(t_simulation *dinning, int argc, char **argv)
 	pthread_mutex_init(&dinning->stoped_lock, NULL);
 	pthread_mutex_init(&dinning->start_time_lock, NULL);
 	pthread_mutex_init(&dinning->philo_fullup_lock, NULL);
+	pthread_mutex_init(&dinning->print_lock, NULL);
 	init_philos(dinning);
 	init_forks(dinning);
 	dinning->meals_limit = INT_MAX;
@@ -181,7 +180,6 @@ int	main(int argc, char **argv)
 	i = 0;
 	while (i < dinning.philo_numbers)
 	{
-		dinning.philos[i]->start_time = gettimeofday_ms();
 		dinning.philos[i]->eat_time = gettimeofday_ms();
 		pthread_create(&dinning.philos[i]->thread, NULL, worker,
 			dinning.philos[i]);

@@ -1,6 +1,5 @@
 #ifndef PHILO_H
 # define PHILO_H
-
 # include <limits.h>
 # include <pthread.h>
 # include <stdint.h>
@@ -44,6 +43,7 @@ typedef struct simulation
 	pthread_mutex_t	start_time_lock;
 	pthread_mutex_t	stoped_lock;
 	pthread_mutex_t	philo_fullup_lock;
+	pthread_mutex_t print_lock;
 }					t_simulation;
 
 typedef enum e_mode
