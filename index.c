@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "philo.h"
+#include <pthread.h>
 #include <unistd.h>
 
 void	logging(t_philo *philo, t_mode mode)
@@ -62,6 +63,12 @@ void	eating(void *arg)
 	{
 		pthread_mutex_lock(&p->right_fork->mutex);
 		logging(p, PICKING_FORK);
+		if(dinning->philo_numbers == 1)
+		{
+		    ft_usleep(dinning->t_t_die * 2);
+			pthread_mutex_unlock(&p->right_fork->mutex);
+			return;
+		}
 		pthread_mutex_lock(&p->left_fork->mutex);
 		logging(p, PICKING_FORK);
 	}
