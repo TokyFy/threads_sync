@@ -30,7 +30,7 @@ void	take_forks(t_philo *p)
 		logging(p, PICKING_FORK, "%ld %d has taken a fork\n");
 		if (dinning->philo_numbers == 1)
 		{
-			ft_usleep(dinning->t_t_die * 2);
+			ft_usleep(dinning, dinning->t_t_die * 2);
 			pthread_mutex_unlock(&p->right_fork->mutex);
 			return ;
 		}
@@ -58,7 +58,7 @@ void	eating(void *arg)
 		pthread_mutex_unlock(&dinning->philo_fullup_lock);
 	}
 	pthread_mutex_unlock(&p->meals_numbers_lock);
-	ft_usleep(dinning->t_t_eat);
+	ft_usleep(dinning, dinning->t_t_eat);
 	pthread_mutex_unlock(&p->right_fork->mutex);
 	pthread_mutex_unlock(&p->left_fork->mutex);
 }
@@ -96,10 +96,10 @@ void	*worker(void *arg)
 			return (NULL);
 		eating(p);
 		logging(p, SLEEPING, "%ld %d is sleeping\n");
-		ft_usleep(dinning->t_t_sleep);
+		ft_usleep(dinning, dinning->t_t_sleep);
 		logging(p, THINKING, "%ld %d is thinking\n");
 		if (dinning->philo_numbers % 2 != 0)
-			ft_usleep(dinning->t_t_eat * 2 - dinning->t_t_sleep);
+			ft_usleep(dinning, dinning->t_t_eat * 2 - dinning->t_t_sleep);
 	}
 	return (NULL);
 }

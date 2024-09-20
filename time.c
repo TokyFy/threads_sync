@@ -26,12 +26,16 @@ uint64_t	gettimeofday_ms(void)
 	return (time);
 }
 
-int	ft_usleep(uint64_t ms)
+int	ft_usleep(t_simulation *t, uint64_t ms)
 {
 	uint64_t	start;
 
 	start = gettimeofday_ms();
 	while ((gettimeofday_ms() - start) < ms)
+	{
+		if (safe_get_int(&t->stoped_lock, &t->stoped))
+			return (0);
 		usleep(500);
+	}
 	return (0);
 }

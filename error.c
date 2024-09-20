@@ -62,9 +62,9 @@ int	args_check(int argc, char **argv)
 	}
 	while (argc > 1)
 	{
-		if (!is_number(argv[argc - 1]))
+		if (!is_number(argv[argc - 1]) || ft_atoi(argv[argc - 1]) <= 0)
 		{
-			printf("Arg [%d] { %s } : Non numerics value\n", argc - 1, argv[argc
+			printf("Arg [%d] { %s } : Non valid value\n", argc - 1, argv[argc
 				- 1]);
 			return (0);
 		}

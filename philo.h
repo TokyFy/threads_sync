@@ -73,7 +73,7 @@ uint64_t			timestamp_in_ms(void);
 uint64_t			safe_get_int(pthread_mutex_t *lock, void *n);
 void				safe_set_int(pthread_mutex_t *lock, void *n,
 						const uint64_t v);
-int					ft_usleep(uint64_t ms);
+int					ft_usleep(t_simulation *t, uint64_t ms);
 void				logging(t_philo *philo, t_mode mode, char *msg);
 
 int					init_philos(t_simulation *s);
