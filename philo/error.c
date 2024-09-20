@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   error.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: franaivo <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: franaivo <franaivo@student.42antanana      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/20 11:52:07 by franaivo          #+#    #+#             */
-/*   Updated: 2024/09/20 11:52:09 by franaivo         ###   ########.fr       */
+/*   Created: 2024/09/20 14:56:39 by franaivo          #+#    #+#             */
+/*   Updated: 2024/09/20 14:56:42 by franaivo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,6 @@ void	free_simulation(t_simulation *dinning)
 	while (i < dinning->philo_numbers)
 	{
 		pthread_mutex_destroy(&forks[i]->mutex);
-		pthread_mutex_destroy(&forks[i]->m_taken);
 		free(forks[i]);
 		pthread_mutex_destroy(&philos[i]->eat_time_lock);
 		pthread_mutex_destroy(&philos[i]->meals_numbers_lock);

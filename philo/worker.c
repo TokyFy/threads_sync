@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   worker.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: franaivo <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: franaivo <franaivo@student.42antanana      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/20 11:52:54 by franaivo          #+#    #+#             */
-/*   Updated: 2024/09/20 11:52:55 by franaivo         ###   ########.fr       */
+/*   Created: 2024/09/20 14:57:50 by franaivo          #+#    #+#             */
+/*   Updated: 2024/09/20 14:57:51 by franaivo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	take_forks(t_philo *p)
 		logging(p, PICKING_FORK, "%ld %d has taken a fork\n");
 		if (dinning->philo_numbers == 1)
 		{
-			ft_usleep(dinning, dinning->t_t_die * 2);
+			ft_usleep(dinning, dinning->t_t_die);
 			pthread_mutex_unlock(&p->right_fork->mutex);
 			return ;
 		}
@@ -59,6 +59,8 @@ void	eating(void *arg)
 	}
 	pthread_mutex_unlock(&p->meals_numbers_lock);
 	ft_usleep(dinning, dinning->t_t_eat);
+	if (dinning->philo_numbers == 1)
+		return ;
 	pthread_mutex_unlock(&p->right_fork->mutex);
 	pthread_mutex_unlock(&p->left_fork->mutex);
 }

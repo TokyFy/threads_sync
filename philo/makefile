@@ -1,9 +1,9 @@
 NAME = philo
-SRCS = index.c utils.c init.c error.c logging.c time.c worker.c
+SRCS = index.c utils.c init.c error.c time.c worker.c
 OBJS = $(SRCS:.c=.o)
 
 CC = cc
-CFLAGS = -g -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror
 all: $(NAME)
 
 

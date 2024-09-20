@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   init.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: franaivo <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: franaivo <franaivo@student.42antanana      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/20 11:52:14 by franaivo          #+#    #+#             */
-/*   Updated: 2024/09/20 11:52:19 by franaivo         ###   ########.fr       */
+/*   Created: 2024/09/20 14:56:51 by franaivo          #+#    #+#             */
+/*   Updated: 2024/09/20 14:56:53 by franaivo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,6 @@ int	init_forks(t_simulation *s)
 		else
 			s->philos[i - 1]->right_fork = forks[i];
 		pthread_mutex_init(&(forks[i])->mutex, NULL);
-		pthread_mutex_init(&(forks[i])->m_taken, NULL);
 		i++;
 	}
 	s->forks = forks;

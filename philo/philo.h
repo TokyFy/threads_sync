@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: franaivo <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: franaivo <franaivo@student.42antanana      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/20 11:51:56 by franaivo          #+#    #+#             */
-/*   Updated: 2024/09/20 11:51:58 by franaivo         ###   ########.fr       */
+/*   Created: 2024/09/20 14:57:16 by franaivo          #+#    #+#             */
+/*   Updated: 2024/09/20 14:57:17 by franaivo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,13 @@
 # include <sys/time.h>
 # include <unistd.h>
 
-typedef struct fork
+typedef struct s_fork
 {
 	int				id;
-	pthread_mutex_t	m_taken;
 	pthread_mutex_t	mutex;
 }					t_fork;
 
-typedef struct philo
+typedef struct s_philo
 {
 	int				id;
 	pthread_t		thread;
@@ -41,7 +40,7 @@ typedef struct philo
 	pthread_mutex_t	meals_numbers_lock;
 }					t_philo;
 
-typedef struct simulation
+typedef struct s_simulation
 {
 	int				philo_numbers;
 	int				philo_fullup_numbers;
