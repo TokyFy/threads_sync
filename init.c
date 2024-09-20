@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: franaivo <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/09/20 11:52:14 by franaivo          #+#    #+#             */
+/*   Updated: 2024/09/20 11:52:19 by franaivo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
 int	init_philos(t_simulation *s)
@@ -48,4 +60,23 @@ int	init_forks(t_simulation *s)
 	}
 	s->forks = forks;
 	return (1);
+}
+
+void	init_simulation(t_simulation *dinning, int argc, char **argv)
+{
+	dinning->philo_numbers = ft_atoi(argv[1]);
+	dinning->t_t_die = ft_atoi(argv[2]);
+	dinning->t_t_eat = ft_atoi(argv[3]);
+	dinning->t_t_sleep = ft_atoi(argv[4]);
+	dinning->stoped = 0;
+	pthread_mutex_init(&dinning->stoped_lock, NULL);
+	pthread_mutex_init(&dinning->start_time_lock, NULL);
+	pthread_mutex_init(&dinning->philo_fullup_lock, NULL);
+	pthread_mutex_init(&dinning->print_lock, NULL);
+	init_philos(dinning);
+	init_forks(dinning);
+	dinning->meals_limit = INT_MAX;
+	dinning->philo_fullup_numbers = 0;
+	if (argc == 6)
+		dinning->meals_limit = ft_atoi(argv[5]);
 }

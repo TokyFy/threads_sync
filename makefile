@@ -1,5 +1,5 @@
 NAME = philo
-SRCS = index.c utils.c init.c
+SRCS = index.c utils.c init.c error.c logging.c time.c worker.c
 OBJS = $(SRCS:.c=.o)
 
 CC = cc

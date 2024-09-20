@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: franaivo <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/09/20 11:51:56 by franaivo          #+#    #+#             */
+/*   Updated: 2024/09/20 11:51:58 by franaivo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef PHILO_H
 # define PHILO_H
 # include <limits.h>
@@ -43,7 +55,7 @@ typedef struct simulation
 	pthread_mutex_t	start_time_lock;
 	pthread_mutex_t	stoped_lock;
 	pthread_mutex_t	philo_fullup_lock;
-	pthread_mutex_t print_lock;
+	pthread_mutex_t	print_lock;
 }					t_simulation;
 
 typedef enum e_mode
@@ -62,8 +74,23 @@ uint64_t			safe_get_int(pthread_mutex_t *lock, void *n);
 void				safe_set_int(pthread_mutex_t *lock, void *n,
 						const uint64_t v);
 int					ft_usleep(uint64_t ms);
+void				logging(t_philo *philo, t_mode mode, char *msg);
 
 int					init_philos(t_simulation *s);
 int					init_forks(t_simulation *s);
+void				init_simulation(t_simulation *dinning, int argc,
+						char **argv);
+
+void				take_forks(t_philo *p);
+void				eating(void *arg);
+int					is_philo_fullup_or_die(t_philo *philo);
+void				*worker(void *arg);
+
+void				monitor(t_simulation *dinning);
+
+void				free_simulation(t_simulation *dinning);
+
+int					is_number(char *str);
+int					args_check(int argc, char **argv);
 
 #endif

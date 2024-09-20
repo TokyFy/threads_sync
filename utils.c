@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: franaivo <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/09/20 11:52:44 by franaivo          #+#    #+#             */
+/*   Updated: 2024/09/20 11:52:45 by franaivo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
 int	ft_atoi(char *s)
@@ -22,35 +34,6 @@ int	ft_atoi(char *s)
 	return (factor * acum);
 }
 
-uint64_t	gettimeofday_ms(void)
-{
-	static pthread_mutex_t	m = PTHREAD_MUTEX_INITIALIZER;
-	uint64_t				time;
-	struct timeval			t;
-
-	pthread_mutex_lock(&m);
-	time = 0;
-	gettimeofday(&t, NULL);
-	time = ((t.tv_sec * (uint64_t)1000) + (t.tv_usec / 1000));
-	pthread_mutex_unlock(&m);
-	return (time);
-}
-
-uint64_t	timestamp_in_ms(void)
-{
-	static pthread_mutex_t	m = PTHREAD_MUTEX_INITIALIZER;
-	static uint64_t			created_at = 0;
-	uint64_t				time;
-
-	pthread_mutex_lock(&m);
-	time = 0;
-	if (created_at == 0)
-		created_at = gettimeofday_ms();
-	time = (gettimeofday_ms() - created_at);
-	pthread_mutex_unlock(&m);
-	return (time);
-}
-
 uint64_t	safe_get_int(pthread_mutex_t *lock, void *n)
 {
 	uint64_t	value;
@@ -68,12 +51,19 @@ void	safe_set_int(pthread_mutex_t *lock, void *n, const uint64_t v)
 	pthread_mutex_unlock(lock);
 }
 
-int	ft_usleep(uint64_t ms)
+void	logging(t_philo *philo, t_mode mode, char *msg)
 {
-	uint64_t	start;
+	t_simulation	*dinning;
+	uint64_t		time;
 
-	start = gettimeofday_ms();
-	while ((gettimeofday_ms() - start) < ms)
-		usleep(500);
-	return (0);
+	dinning = philo->dinning;
+	pthread_mutex_lock(&dinning->print_lock);
+	time = gettimeofday_ms();
+	if (safe_get_int(&dinning->stoped_lock, &dinning->stoped) && mode != DYING)
+	{
+		pthread_mutex_unlock(&dinning->print_lock);
+		return ;
+	}
+	printf(msg, time - philo->start_time, philo->id);
+	pthread_mutex_unlock(&dinning->print_lock);
 }
