@@ -12,9 +12,10 @@
 
 #include "philo.h"
 #include <pthread.h>
+#include <time.h>
 #include <unistd.h>
 
-void	logging(t_philo *philo, t_mode mode)
+void	logging(t_philo *philo, t_mode mode , char *msg)
 {
 	t_simulation			*dinning;
 	uint64_t				time;
@@ -26,19 +27,8 @@ void	logging(t_philo *philo, t_mode mode)
 	    pthread_mutex_unlock(&dinning->print_lock);
 		return ;
 	}
-	if (mode == THINKING)
-		printf("%ld %d is thinking\n", time - philo->start_time, philo->id);
-	else if (mode == EATING)
-	{
-		printf("%ld %d is eating\n", time - philo->start_time, philo->id);
-	}
-	else if (mode == PICKING_FORK)
-		printf("%ld %d has taken a fork\n", time - philo->start_time,
-			philo->id);
-	else if (mode == SLEEPING)
-		printf("%ld %d is sleeping\n", time - philo->start_time, philo->id);
-	else if (mode == DYING)
-		printf("%ld %d died\n", time - philo->start_time, philo->id);
+
+	printf(msg , time - philo->start_time , philo->id);
 	pthread_mutex_unlock(&dinning->print_lock);
 }
 
@@ -50,14 +40,14 @@ void	take_forks(t_philo *p)
 	if (p->id % 2 == 0)
 	{
 		pthread_mutex_lock(&p->left_fork->mutex);
-		logging(p, PICKING_FORK);
+		logging(p, PICKING_FORK , "%ld %d has taken a fork\n");
 		pthread_mutex_lock(&p->right_fork->mutex);
-		logging(p, PICKING_FORK);
+		logging(p, PICKING_FORK , "%ld %d has taken a fork\n");
 	}
 	else
 	{
 		pthread_mutex_lock(&p->right_fork->mutex);
-		logging(p, PICKING_FORK);
+		logging(p, PICKING_FORK , "%ld %d has taken a fork\n");
 		if (dinning->philo_numbers == 1)
 		{
 			ft_usleep(dinning->t_t_die * 2);
@@ -65,7 +55,7 @@ void	take_forks(t_philo *p)
 			return ;
 		}
 		pthread_mutex_lock(&p->left_fork->mutex);
-		logging(p, PICKING_FORK);
+		logging(p, PICKING_FORK , "%ld %d has taken a fork\n");
 	}
 }
 
@@ -77,7 +67,7 @@ void	eating(void *arg)
 	p = arg;
 	dinning = p->dinning;
 	take_forks(p);
-	logging(p, EATING);
+	logging(p, EATING , "%ld %d is eating\n");
 	safe_set_int(&p->eat_time_lock, &p->eat_time, gettimeofday_ms());
 	pthread_mutex_lock(&p->meals_numbers_lock);
 	p->meals_numbers++;
@@ -107,9 +97,9 @@ void	*worker(void *arg)
 		if (safe_get_int(&dinning->stoped_lock, &dinning->stoped))
 			return (NULL);
 		eating(p);
-		logging(p, SLEEPING);
+		logging(p, SLEEPING , "%ld %d is sleeping\n");
 		ft_usleep(dinning->t_t_sleep);
-		logging(p, THINKING);
+		logging(p, THINKING , "%ld %d is thinking\n");
 		if (dinning->philo_numbers % 2 != 0)
 			ft_usleep(dinning->t_t_eat * 2 - dinning->t_t_sleep);
 	}
@@ -156,7 +146,7 @@ void	monitor(t_simulation *dinning)
 			{
 				safe_set_int(&dinning->stoped_lock, &dinning->stoped, 1);
 				if (hungry_time >= dinning->t_t_die)
-					logging(dinning->philos[i], DYING);
+					logging(dinning->philos[i], DYING , "%ld %d died\n");
 				break ;
 			}
 			i++;
@@ -164,6 +154,30 @@ void	monitor(t_simulation *dinning)
 		if (dinning->stoped)
 			break ;
 	}
+}
+
+void free_simulation(t_simulation *dinning)
+{
+    pthread_mutex_destroy(&dinning->start_time_lock);
+    pthread_mutex_destroy(&dinning->stoped_lock);
+    pthread_mutex_destroy(&dinning->philo_fullup_lock);
+    pthread_mutex_destroy(&dinning->print_lock);
+    t_fork **forks = dinning->forks;
+    t_philo **philos = dinning->philos;
+    int i = 0;
+    while (i < dinning->philo_numbers) {
+        pthread_mutex_destroy(&forks[i]->mutex);
+        pthread_mutex_destroy(&forks[i]->m_taken);
+        free(forks[i]);
+
+        pthread_mutex_destroy(&philos[i]->eat_time_lock);
+        pthread_mutex_destroy(&philos[i]->meals_numbers_lock);
+        free(philos[i]);
+        i++;
+    }
+    free(forks);
+    free(philos);
+    return;
 }
 
 int	main(int argc, char **argv)
@@ -188,9 +202,7 @@ int	main(int argc, char **argv)
 	monitor(&dinning);
 	i = 0;
 	while (i < dinning.philo_numbers)
-	{
-		pthread_join(dinning.philos[i]->thread, NULL);
-		i++;
-	}
+		pthread_join(dinning.philos[i++]->thread, NULL);
+	free_simulation(&dinning);
 	return (0);
 }
