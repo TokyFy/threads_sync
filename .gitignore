@@ -1,4 +1,4 @@
 a.out
-philo
 .idea
 *.o
+/philo/philo
